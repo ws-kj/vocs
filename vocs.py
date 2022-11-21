@@ -8,7 +8,8 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 SCOPES = [
-    'https://www.googleapis.com/auth/documents'
+    'https://www.googleapis.com/auth/documents',
+    'https://www.googleapis.com/auth/drive'
 ]
 
 def conn():
@@ -33,5 +34,26 @@ def conn():
         print(err)
         sys.exit(1)
 
+def load_doc(service, docid):
+    try:
+        doc = service.documents().get(documentId=docid).execute()
+        return doc
+    except HttpError as err:
+        print(err)
+        return {}
+
+def build_raw(doc):
+    raw = ""
+    for elem in doc["body"]["content"]:
+        if "paragraph" in elem:
+            raw += elem["paragraph"]["elements"][0]["textRun"]["content"]
+    return raw
+
 if __name__ == '__main__':
-    conn()
+    service = conn()
+
+    if len(sys.argv) > 1:
+        doc = load_doc(service, sys.argv[1])
+
+        print(doc['title'] + "\n\n")
+        print(build_raw(doc))
