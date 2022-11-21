@@ -12,75 +12,75 @@ SCOPES = [
     'https://www.googleapis.com/auth/drive'
 ]
 
+class APIClient(object):
 
-def conn():
-    docs_service = None
-    drive_service = None
-    creds = None
+    def __init__(self):
+        self.docs_service = None
+        self.drive_service = None
+        self.creds = None
 
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())    
-    try:
-        drive_service = build('drive', 'v3', credentials=creds) 
-        docs_service = build('docs', 'v1', credentials=creds)
+        if os.path.exists('token.json'):
+            self.creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+        if not self.creds or not self.creds.valid:
+            if self.creds and self.creds.expired and self.creds.refresh_token:
+                self.creds.refresh(Request())
+            else:
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    'credentials.json', SCOPES)
+                self.creds = flow.run_local_server(port=0)
+            with open('token.json', 'w') as token:
+                token.write(creds.to_json())    
+        try:
+            self.drive_service = build('drive', 'v3', credentials=self.creds) 
+            self.docs_service = build('docs', 'v1', credentials=self.creds)
 
-    except HttpError as err:
-        print(err)
-        sys.exit(1)
+        except HttpError as err:
+            print(err)
+            sys.exit(1)
 
-    return docs_service, drive_service
+    def load_doc(self, docid):
+        try:
+            doc = self.docs_service.documents().get(documentId=docid).execute()
+            return doc
+        except HttpError as err:
+            print(err)
+            return {}
 
-def load_doc(docs_service, docid):
-    try:
-        doc = docs_service.documents().get(documentId=docid).execute()
-        return doc
-    except HttpError as err:
-        print(err)
-        return {}
+    def build_raw(self, doc):
+        raw = ""
+        for elem in doc["body"]["content"]:
+            if "paragraph" in elem:
+                raw += elem["paragraph"]["elements"][0]["textRun"]["content"]
+        return raw
 
-def build_raw(doc):
-    raw = ""
-    for elem in doc["body"]["content"]:
-        if "paragraph" in elem:
-            raw += elem["paragraph"]["elements"][0]["textRun"]["content"]
-    return raw
+    def get_files(self):
+        files = []
+        try:
+            page_token = None
+            while True:
+                response = self.drive_service.files().list(
+                    q="mimeType='application/vnd.google-apps.document'",
+                    spaces='drive',
+                    fields='nextPageToken, '
+                           'files(id, name)',
+                    pageToken=page_token).execute()
+                for file in response.get('files', []):
+                    files.append({'name': file.get("name"), 'id': file.get("id")})    
+                page_token = response.get('nextPageToken', None)
+                if page_token is None:
+                    break
+        except HttpError as err:
+            print(err)
+           
+        return files
 
-def get_files(drive_service):
-    files = []
-    try:
-        page_token = None
-        while True:
-            response = drive_service.files().list(
-                q="mimeType='application/vnd.google-apps.document'",
-                spaces='drive',
-                fields='nextPageToken, '
-                       'files(id, name)',
-                pageToken=page_token).execute()
-            for file in response.get('files', []):
-                files.append({'name': file.get("name"), 'id': file.get("id")})    
-            page_token = response.get('nextPageToken', None)
-            if page_token is None:
-                break
-    except HttpError as err:
-        print(err)
-       
-    return files
 if __name__ == '__main__':
-    docs_service, drive_service = conn()
+    client = APIClient()
 
     if len(sys.argv) > 1:
-        doc = load_doc(docs_service, sys.argv[1])
+        doc = client.load_doc(sys.argv[1])
 
         print(doc['title'] + "\n\n")
-        print(build_raw(doc))
+        print(client.build_raw(doc))
     else:
-        print(get_files(drive_service))
+        print(client.get_files())
