@@ -8,6 +8,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+from vim_bridge import bridged
+
 SCOPES = [
     'https://www.googleapis.com/auth/documents',
     'https://www.googleapis.com/auth/drive'
@@ -25,7 +27,7 @@ class Document(object):
     def update_body(self, body):
         self.body = body
         self.start_index = 1
-        self.end_index = len(body)-1
+        self.end_index = len(body)  
 
 class APIClient(object):
 
@@ -104,8 +106,8 @@ class APIClient(object):
                 body={"requests": [
                     { "deleteContentRange": {
                         "range": {
-                            "startIndex": self.current_doc.start_index,
-                            "endIndex": self.current_doc.end_index
+                            "startIndex": 1,
+                            "endIndex": self.get_current_end()
                         }
                     }},
                     { "insertText": {
@@ -122,14 +124,24 @@ class APIClient(object):
 
         except HttpError as err:
             print(err)         
-                            
+
+    def get_current_end(self):                            
+        if self.current_doc == None or self.current_doc.body == None:
+            return 1
+        try:
+            doc_resp = self.docs_service.documents().get(documentId=self.current_doc.docid).execute()
+            return doc_resp["body"]["content"][len(doc_resp["body"]["content"])-1]["endIndex"]-1
+
+        except HttpError as err:
+            print(err)
+            return 1
 
 if __name__ == '__main__':
     client = APIClient()
 
     if len(sys.argv) > 1:
         client.load_doc(sys.argv[1])
-        client.current_doc.body = client.current_doc.body + client.current_doc.body
+        client.current_doc.update_body(client.current_doc.body + client.current_doc.body)
         client.push_update()
         
     else:
