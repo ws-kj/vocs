@@ -136,13 +136,14 @@ class APIClient(object):
             print(err)
             return 1
 
-if __name__ == '__main__':
-    client = APIClient()
 
-    if len(sys.argv) > 1:
-        client.load_doc(sys.argv[1])
-        client.current_doc.update_body(client.current_doc.body + client.current_doc.body)
-        client.push_update()
+#if __name__ == '__main__':
+#    client = APIClient()
+
+#    if len(sys.argv) > 1:
+#        client.load_doc(sys.argv[1])
+#        client.current_doc.update_body(client.current_doc.body + client.current_doc.body)
+#        client.push_update()
         
-    else:
-        print(client.get_files())
+#    else:
+ #       print(client.get_files())
