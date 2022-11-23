@@ -13,6 +13,11 @@ def open_doc(id):
     if client.current_doc != None:
         vim.current.buffer[:] = client.current_doc.body.splitlines()
         buffer = vim.current.buffer
+        vim.command("setlocal buftype=nofile")
+        vim.command("setlocal bufhidden=hide")
+        vim.command("setlocal noswapfile")
+        vim.command("file " + client.current_doc.title + " (Google Docs)")
+
     return client, buffer 
 
 def create_doc(title):
@@ -21,6 +26,11 @@ def create_doc(title):
     if client.current_doc != None:
         buffer = vim.current.buffer
         vim.current.buffer[:] = []
+        vim.command("setlocal buftype=nofile")
+        vim.command("setlocal bufhidden=hide")
+        vim.command("setlocal noswapfile")
+        vim.command("file " + title + " (Google Docs)")
+
     return client, buffer
 
 def save_doc(client, buffer):
@@ -29,6 +39,11 @@ def save_doc(client, buffer):
     if client != None and client.current_doc != None:
        client.current_doc.update_body("\n".join(vim.current.buffer[:]))
        client.push_update()
+
+def list_docs(client):
+    if client == None:
+        client = APIClient()
+    return client.get_files()
 
 end_python3
 
