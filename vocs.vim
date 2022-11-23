@@ -20,6 +20,7 @@ def create_doc(title):
     client.create_doc(title)
     if client.current_doc != None:
         buffer = vim.current.buffer
+        vim.current.buffer[:] = []
     return client, buffer
 
 def save_doc(client, buffer):
@@ -32,5 +33,5 @@ def save_doc(client, buffer):
 end_python3
 
 command -nargs=1 LoadDoc   execute "py3 client, buffer = open_doc(\'" '<args>' "\')"
-command -nargs=1 CreateDoc execute "py3 client, buffer = create_doc(\'" '<args>' "\')"
+command -nargs=* CreateDoc execute "py3 client, buffer = create_doc(\'" '<args>' "\')"
 command -nargs=0 SaveDoc   execute "py3 save_doc(client, buffer)"
