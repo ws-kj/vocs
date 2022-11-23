@@ -8,17 +8,17 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from vim_bridge import bridged
-
 SCOPES = [
     'https://www.googleapis.com/auth/documents',
     'https://www.googleapis.com/auth/drive'
 ]
 
 class Document(object):
-    def __init__(self, docid, revision, body=None):
+    def __init__(self, docid, revision, title, body=None):
         self.docid = docid
         self.revision = revision
+        self.title = title
+
         if body is not None:
             self.body = body
             self.start_index = 1
@@ -62,7 +62,20 @@ class APIClient(object):
             doc_resp = self.docs_service.documents().get(documentId=docid).execute()
             body = self.build_raw(doc_resp)
             revision = doc_resp["revisionId"]
-            self.current_doc = Document(docid, revision, body)
+            title = doc_resp["title"]
+            self.current_doc = Document(docid, revision, title, body)
+
+        except HttpError as err:
+            print(err)
+
+    def create_doc(self, title):
+        body = {'title': title}
+        try:
+            doc_resp = self.docs_service.documents().create(body=body).execute()
+            docid = doc_resp["documentId"]
+            body = self.build_raw(doc_resp)
+            revision = doc_resp["revisionId"]
+            self.current_doc = Document(docid, revision, title, body)
 
         except HttpError as err:
             print(err)
@@ -99,11 +112,19 @@ class APIClient(object):
         if self.current_doc == None or self.current_doc.body == None:
             return
         try:
-            batch = self.docs_service.new_batch_http_request();
-
-            response = self.docs_service.documents().batchUpdate(
-                documentId=self.current_doc.docid,
-                body={"requests": [
+            doc_resp = self.docs_service.documents().get(documentId=self.current_doc.docid).execute()
+            old_body = self.build_raw(doc_resp)
+            if len(old_body) < 2:
+                req = {"requests": [ 
+                    { "insertText": {
+                        "location": {
+                            "index": 1
+                        },
+                        "text": self.current_doc.body
+                    }}
+                ]}
+            else:
+                req={"requests": [
                     { "deleteContentRange": {
                         "range": {
                             "startIndex": 1,
@@ -117,6 +138,11 @@ class APIClient(object):
                         "text": self.current_doc.body
                     }}
                 ]}
+            
+            batch = self.docs_service.new_batch_http_request();
+            response = self.docs_service.documents().batchUpdate(
+                documentId=self.current_doc.docid,
+                body=req
             ).execute()
 
             if "writeControl" in response:
@@ -127,7 +153,7 @@ class APIClient(object):
 
     def get_current_end(self):                            
         if self.current_doc == None or self.current_doc.body == None:
-            return 1
+            return 2
         try:
             doc_resp = self.docs_service.documents().get(documentId=self.current_doc.docid).execute()
             return doc_resp["body"]["content"][len(doc_resp["body"]["content"])-1]["endIndex"]-1
@@ -135,15 +161,3 @@ class APIClient(object):
         except HttpError as err:
             print(err)
             return 1
-
-
-#if __name__ == '__main__':
-#    client = APIClient()
-
-#    if len(sys.argv) > 1:
-#        client.load_doc(sys.argv[1])
-#        client.current_doc.update_body(client.current_doc.body + client.current_doc.body)
-#        client.push_update()
-        
-#    else:
- #       print(client.get_files())
