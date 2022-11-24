@@ -11,6 +11,8 @@ def open_doc(id):
     id = id[1:len(id)-1]
     client.load_doc(id) 
     if client.current_doc != None:
+        if vim.current.buffer[:] != [''] and vim.current.buffer.name != "[No Name]":
+            vim.command("tabe")
         vim.current.buffer[:] = client.current_doc.body.splitlines()
         buffer = vim.current.buffer
         vim.command("setlocal buftype=nofile")
@@ -24,6 +26,8 @@ def create_doc(title):
     client = APIClient()
     client.create_doc(title)
     if client.current_doc != None:
+        if vim.current.buffer[:] != [''] and vim.current.buffer.name != "[No Name]":
+            vim.command("tabe")
         buffer = vim.current.buffer
         vim.current.buffer[:] = []
         vim.command("setlocal buftype=nofile")
@@ -49,10 +53,11 @@ def list_docs(client):
 end_python3
 
 function! s:BuildList() abort
+    let l:listsize = 16
     let l:all_docs = py3eval("list_docs(client)")
     let l:prompt = "Documents"
     let l:start = 0
-    let l:end =  9
+    let l:end =  l:listsize-1
 
     while 1
         redraw
@@ -64,9 +69,9 @@ function! s:BuildList() abort
             py3 client, buffer = open_doc("\'" + vim.eval("l:docid") + "\'")
             break
         elseif l:idx == 2 
-            if l:start+10 <= len(l:all_docs)-1
-                let l:start += 10
-                let l:end += 10
+            if l:start+l:listsize <= len(l:all_docs)-1
+                let l:start += l:listsize
+                let l:end += l:listsize
                 if l:end >= len(l:all_docs)
                     let l:end = len(l:all_docs)-1
                 endif
@@ -77,8 +82,8 @@ function! s:BuildList() abort
             if l:start == 0 
                 continue
             endif
-            let l:start -= 10
-            let l:end -= 10
+            let l:start -= l:listsize
+            let l:end -= l:listsize
             if l:start < 0
                 let l:start = 0
             endif

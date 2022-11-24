@@ -62,7 +62,7 @@ class APIClient(object):
             doc_resp = self.docs_service.documents().get(documentId=docid).execute()
             body = self.build_raw(doc_resp)
             revision = doc_resp.get("revisionId")
-            title = doc_resp["title"]
+            title = doc_resp.get("title")
             self.current_doc = Document(docid, revision, title, body)
 
         except HttpError as err:
@@ -74,7 +74,7 @@ class APIClient(object):
             doc_resp = self.docs_service.documents().create(body=body).execute()
             docid = doc_resp["documentId"]
             body = self.build_raw(doc_resp)
-            revision = doc_resp["revisionId"]
+            revision = doc_resp.get("revisionId")
             self.current_doc = Document(docid, revision, title, body)
 
         except HttpError as err:
