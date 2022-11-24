@@ -1,4 +1,4 @@
-pyfile expand('<sfile>:p:h') + vocs.py
+pyfile '/plugin/' + vocs.py
 
 python3 << end_python3
 import vim
