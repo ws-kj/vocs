@@ -52,10 +52,10 @@ def list_docs(client):
 
 end_python3
 
-function! s:BuildList() abort
+function! vocs#BuildList() abort
     let l:listsize = 16
     let l:all_docs = py3eval("list_docs(client)")
-    let l:prompt = "Documents"
+    let l:prompt = "vocs -- Documents"
     let l:start = 0
     let l:end =  l:listsize-1
 
@@ -95,8 +95,3 @@ function! s:BuildList() abort
         endif
     endwhile
 endfunction
-    
-command -nargs=1 LoadDoc   execute "py3 client, buffer = open_doc(\'" '<args>' "\')"
-command -nargs=* CreateDoc execute "py3 client, buffer = create_doc(\'" '<args>' "\')"
-command -nargs=0 SaveDoc   execute "py3 save_doc(client, buffer)"
-command -nargs=0 ListDocs  execute s:BuildList()
