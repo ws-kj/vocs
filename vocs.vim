@@ -16,7 +16,7 @@ def open_doc(id):
         vim.current.buffer[:] = client.current_doc.body.splitlines()
         buffer = vim.current.buffer
         vim.command("setlocal buftype=nofile")
-        vim.command("setlocal bufhidden=hide")
+        vim.command("setlocal bufhidden=wipe")
         vim.command("setlocal noswapfile")
         vim.command("file " + client.current_doc.title + " (Google Docs)")
 
@@ -31,7 +31,7 @@ def create_doc(title):
         buffer = vim.current.buffer
         vim.current.buffer[:] = []
         vim.command("setlocal buftype=nofile")
-        vim.command("setlocal bufhidden=hide")
+        vim.command("setlocal bufhidden=wipe")
         vim.command("setlocal noswapfile")
         vim.command("file " + title + " (Google Docs)")
 
