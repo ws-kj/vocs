@@ -46,6 +46,24 @@ def list_docs(client):
 
     return client.get_files()
 
+def build_list(client):
+    if client == None:
+        client = APIClient()
+
+    all_docs = client.get_files()
+    prompt = "Documents"
+    start = 0
+    end = 10
+    options = [{"name": "last page"}, {"name": "next page"}] + all_docs[start:end]
+
+    vim.command("let l:idx = inputlist(insert(map(copy( py3eval(\"'options'\") ), \'(1+v:key) . \". \" . v:val[\"name\"]\'), l:prompt))")
+    idx = vim.eval("idx")
+    if idx >=3 and idx <= len(options):
+        final = idx-1
+
+    docid = options[final].get("id")
+    return open_doc("\'" + docid + "\'")
+
 end_python3
 
 function! s:BuildList() abort
@@ -55,7 +73,6 @@ function! s:BuildList() abort
     let l:end =  9
 
     while 1
-        redraw
         let l:options = [{"name": "Last page"}, {"name":"Next page"}] + l:all_docs[l:start:l:end]
         let l:idx = inputlist(insert(map(copy(l:options), '(1+v:key) . ". " . v:val["name"]'), l:prompt))
         if l:idx >= 3 && l:idx <= len(l:options)
@@ -63,20 +80,13 @@ function! s:BuildList() abort
             let l:docid = l:options[l:final]['id']
             py3 client, buffer = open_doc("\'" + vim.eval("l:docid") + "\'")
             break
-        elseif l:idx == 2 
-            if l:start+10 <= len(l:all_docs)-1
-                let l:start += 10
-                let l:end += 10
-                if l:end >= len(l:all_docs)
-                    let l:end = len(l:all_docs)-1
-                endif
-            else
-                continue
+        elseif l:idx == 2 && l:start+10 <= len(l:all_docs)-1
+            let l:start += 10
+            let l:end += 10
+            if l:end >= len(l:all_docs)
+                let l:end = len(l:all_docs)-1
             endif
-        elseif l:idx == 1 
-            if l:start == 0 
-                continue
-            endif
+        elseif l:idx == 1 && l:start >= 10
             let l:start -= 10
             let l:end -= 10
             if l:start < 0
@@ -85,8 +95,6 @@ function! s:BuildList() abort
             if l:end >= len(l:all_docs)
                 let l:end = len(l:all_docs)-1
             endif
-        else
-            break
         endif
     endwhile
 endfunction

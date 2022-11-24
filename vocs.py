@@ -61,7 +61,7 @@ class APIClient(object):
         try:
             doc_resp = self.docs_service.documents().get(documentId=docid).execute()
             body = self.build_raw(doc_resp)
-            revision = doc_resp["revisionId"]
+            revision = doc_resp.get("revisionId")
             title = doc_resp["title"]
             self.current_doc = Document(docid, revision, title, body)
 
