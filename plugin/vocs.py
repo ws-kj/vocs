@@ -165,3 +165,10 @@ class APIClient(object):
         except HttpError as err:
             print(err)
             return 1
+
+
+def list_docs(client):
+    if client == None:
+        client = APIClient(getcwd() + '/../plugin/credentials.json')
+
+    return client.get_files()
