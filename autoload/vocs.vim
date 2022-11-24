@@ -7,8 +7,10 @@ import os
 client = None
 buffer = None
 
+credpath = os.path.dirname(os.path.realpath(__file__)) + '/../plugin/credentials.json'
+
 def open_doc(id):
-    client = APIClient(os.getcwd() + '/../plugin/credentials.json')
+    client = APIClient(credpath)
     id = id[1:len(id)-1]
     client.load_doc(id) 
     if client.current_doc != None:
@@ -24,7 +26,7 @@ def open_doc(id):
     return client, buffer 
 
 def create_doc(title):
-    client = APIClient(os.getcwd() + '/../plugin/credentials.json')
+    client = APIClient(credpath)
     client.create_doc(title)
     if client.current_doc != None:
         if vim.current.buffer[:] != [''] and vim.current.buffer.name != "[No Name]":
@@ -47,7 +49,7 @@ def save_doc(client, buffer):
 
 def list_docs(client):
     if client == None:
-        client = APIClient(os.getcwd() + '/../plugin/credentials.json')
+        client = APIClient(credpath)
 
     return client.get_files()
 
