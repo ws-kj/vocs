@@ -13,6 +13,8 @@ SCOPES = [
     'https://www.googleapis.com/auth/drive'
 ]
 
+TOKEN = '~/.config/vocs/token.json'
+
 class Document(object):
     def __init__(self, docid, revision, title, body=None):
         self.docid = docid
@@ -38,8 +40,8 @@ class APIClient(object):
 
         self.current_doc = None
 
-        if os.path.exists('token.json'):
-            self.creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+        if os.path.exists(TOKEN):
+            self.creds = Credentials.from_authorized_user_file(TOKEN, SCOPES)
         if not self.creds or not self.creds.valid:
             if self.creds and self.creds.expired and self.creds.refresh_token:
                 self.creds.refresh(Request())
@@ -47,7 +49,7 @@ class APIClient(object):
                 flow = InstalledAppFlow.from_client_secrets_file(
                     credpath, SCOPES)
                 self.creds = flow.run_local_server(port=0)
-            with open('token.json', 'w') as token:
+            with open(TOKEN, 'w') as token:
                 token.write(self.creds.to_json())    
         try:
             self.drive_service = build('drive', 'v3', credentials=self.creds) 

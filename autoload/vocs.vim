@@ -8,7 +8,8 @@ client = None
 buffer = None
 
 #credpath = os.path.dirname(os.path.realpath(__file__)) + '/../plugin/credentials.json'
-credpath = vim.eval("expand('<sfile>:p:h')") + '/../plugin/credentials.json'
+#credpath = vim.eval("expand('<sfile>:p:h')") + '/../plugin/credentials.json'
+credpath = "~/.config/vocs/credentials.json"
 
 def open_doc(id):
     client = APIClient(credpath)
