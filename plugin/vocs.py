@@ -31,7 +31,7 @@ class Document(object):
 
 class APIClient(object):
 
-    def __init__(self):
+    def __init__(self, credpath):
         self.docs_service = None
         self.drive_service = None
         self.creds = None
@@ -45,7 +45,7 @@ class APIClient(object):
                 self.creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    'credentials.json', SCOPES)
+                    credpath, SCOPES)
                 self.creds = flow.run_local_server(port=0)
             with open('token.json', 'w') as token:
                 token.write(self.creds.to_json())    
