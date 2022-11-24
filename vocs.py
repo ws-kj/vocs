@@ -99,7 +99,11 @@ class APIClient(object):
                            'files(id, name)',
                     pageToken=page_token).execute()
                 for file in response.get('files', []):
-                    files.append({'name': file.get("name"), 'id': file.get("id")})    
+                    files.append({
+                        'name': file.get("name"), 
+                        'id': file.get("id"), 
+                        'modified': file.get("modifiedTime")
+                    })    
                 page_token = response.get('nextPageToken', None)
                 if page_token is None:
                     break

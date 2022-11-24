@@ -47,6 +47,20 @@ def list_docs(client):
 
 end_python3
 
+function! s:BuildList()
+    let l:options = py3eval("list_docs(client)[:10]")
+    let l:prompt = a:0 ? a:1 : "Documents"
+    let l:idx = inputlist(insert(map(copy(l:options), '(1+v:key) . ". " . v:val["name"]'), l:prompt))
+    if l:idx >= 1 && l:idx <= len(l:options)
+        let l:final = l:idx-1
+    endif
+    
+    let l:docid = l:options[l:final]['id']
+    py3 client, buffer = open_doc("\'" + vim.eval("l:docid") + "\'")
+
+endfunction
+    
 command -nargs=1 LoadDoc   execute "py3 client, buffer = open_doc(\'" '<args>' "\')"
 command -nargs=* CreateDoc execute "py3 client, buffer = create_doc(\'" '<args>' "\')"
 command -nargs=0 SaveDoc   execute "py3 save_doc(client, buffer)"
+command -nargs=0 ListDocs  execute s:BuildList()
