@@ -13,7 +13,7 @@ SCOPES = [
     'https://www.googleapis.com/auth/drive'
 ]
 
-TOKEN = '~/.config/vocs/token.json'
+TOKEN = os.path.expanduser('~/.config/vocs/token.json')
 
 class Document(object):
     def __init__(self, docid, revision, title, body=None):
