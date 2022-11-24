@@ -2,13 +2,13 @@ pyfile <sfile>:p:h/../plugin/vocs.py
 
 python3 << end_python3
 import vim
-from os import getcwd
+import os
 
 client = None
 buffer = None
 
 def open_doc(id):
-    client = APIClient(getcwd() + '/../plugin/credentials.json')
+    client = APIClient(os.getcwd() + '/../plugin/credentials.json')
     id = id[1:len(id)-1]
     client.load_doc(id) 
     if client.current_doc != None:
@@ -24,7 +24,7 @@ def open_doc(id):
     return client, buffer 
 
 def create_doc(title):
-    client = APIClient(getcwd() + '/../plugin/credentials.json')
+    client = APIClient(os.getcwd() + '/../plugin/credentials.json')
     client.create_doc(title)
     if client.current_doc != None:
         if vim.current.buffer[:] != [''] and vim.current.buffer.name != "[No Name]":
@@ -47,7 +47,7 @@ def save_doc(client, buffer):
 
 def list_docs(client):
     if client == None:
-        client = APIClient(getcwd() + '/../plugin/credentials.json')
+        client = APIClient(os.getcwd() + '/../plugin/credentials.json')
 
     return client.get_files()
 
