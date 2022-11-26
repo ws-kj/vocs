@@ -49,7 +49,7 @@ def save_doc(client, buffer):
        client.current_doc.update_body("\n".join(vim.current.buffer[:]))
        client.push_update()
 
-def list_docs(client):
+def list_docs():
     if client == None:
         client = APIClient(credpath)
 
@@ -59,7 +59,7 @@ end_python3
 
 function! vocs#BuildList() abort
     let l:listsize = 16
-    let l:all_docs = py3eval("list_docs(None)")
+    let l:all_docs = py3eval("list_docs()")
     let l:prompt = "vocs -- Documents"
     let l:start = 0
     let l:end =  l:listsize-1
@@ -78,7 +78,7 @@ function! vocs#BuildList() abort
                 let l:start += l:listsize
                 let l:end += l:listsize
                 if l:end >= len(l:all_docs)
-                    l:next_batch = py3eval("list_docs(client)")
+                    l:next_batch = py3eval("list_docs()")
                     l:all_docs = l:all_docs + l:next_batch
                 endif
                 if l:end >= len(l:all_docs)
