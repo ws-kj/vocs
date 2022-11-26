@@ -39,6 +39,7 @@ class APIClient(object):
         self.creds = None
 
         self.current_doc = None
+        self.page_token = None
 
         if os.path.exists(TOKEN):
             self.creds = Credentials.from_authorized_user_file(TOKEN, SCOPES)
@@ -86,29 +87,25 @@ class APIClient(object):
         raw = ""
         for elem in doc_resp["body"]["content"]:
             if "paragraph" in elem:
-                raw += elem["paragraph"]["elements"][0]["textRun"]["content"]
+                raw += elem["paragraph"]["elements"][0].get("textRun")["content"]
         return raw
 
     def get_files(self):
         files = []
         try:
-            page_token = None
-            while True:
-                response = self.drive_service.files().list(
-                    q="mimeType='application/vnd.google-apps.document'",
-                    spaces='drive',
-                    fields='nextPageToken, '
-                           'files(id, name)',
-                    pageToken=page_token).execute()
-                for file in response.get('files', []):
-                    files.append({
-                        'name': file.get("name"), 
-                        'id': file.get("id"), 
-                        'modified': file.get("modifiedTime")
-                    })    
-                page_token = response.get('nextPageToken', None)
-                if page_token is None:
-                    break
+            response = self.drive_service.files().list(
+                q="mimeType='application/vnd.google-apps.document'",
+                spaces='drive',
+                fields='nextPageToken, '
+                       'files(id, name)',
+                pageToken=self.page_token).execute()
+            for file in response.get('files', []):
+                files.append({
+                    'name': file.get("name"), 
+                    'id': file.get("id"), 
+                    'modified': file.get("modifiedTime")
+                })    
+            self. page_token = response.get('nextPageToken', None)
         except HttpError as err:
             print(err)
            
