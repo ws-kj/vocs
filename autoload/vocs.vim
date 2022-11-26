@@ -79,6 +79,7 @@ function! vocs#BuildList() abort
                 let l:end += l:listsize
                 if l:end >= len(l:all_docs)
                     l:all_docs = l:all_docs + py3eval("list_docs(client)")
+                endif
                 if l:end >= len(l:all_docs)
                     let l:end = len(l:all_docs)-1
                 endif
