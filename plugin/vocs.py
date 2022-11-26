@@ -15,6 +15,8 @@ SCOPES = [
 
 TOKEN = os.path.expanduser('~/.config/vocs/token.json')
 
+client = None
+
 class Document(object):
     def __init__(self, docid, revision, title, body=None):
         self.docid = docid
