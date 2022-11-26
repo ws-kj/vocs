@@ -59,7 +59,7 @@ end_python3
 
 function! vocs#BuildList() abort
     let l:listsize = 16
-    py3("listclient = APIClient(credpath)")
+    py3 listclient = APIClient(credpath)
     let l:all_docs = py3eval("'list_docs(listclient)'")
     let l:prompt = "vocs -- Documents"
     let l:start = 0
@@ -77,10 +77,10 @@ function! vocs#BuildList() abort
             if l:start+l:listsize <= len(l:all_docs)-1
                 let l:start += l:listsize
                 let l:end += l:listsize
-                " if l:end >= len(l:all_docs)
-                "     l:next_batch = py3eval("'list_docs(listclient)'")
-                    " l:all_docs = l:all_docs + l:next_batch
-                " endif
+                if l:end >= len(l:all_docs)
+                    l:next_batch = py3eval("'list_docs(listclient)'")
+                    l:all_docs = l:all_docs + l:next_batch
+                endif
                 if l:end >= len(l:all_docs)
                     let l:end = len(l:all_docs)-1
                 endif
