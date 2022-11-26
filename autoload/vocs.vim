@@ -64,7 +64,6 @@ function! vocs#BuildList() abort
     let l:prompt = "vocs -- Documents"
     let l:start = 0
     let l:end =  l:listsize-1
-    echo "yea"
     while 1
         redraw
         let l:options = [{"name": "Last page"}, {"name":"Next page"}] + l:all_docs[l:start:l:end]
@@ -80,7 +79,7 @@ function! vocs#BuildList() abort
                 let l:end += l:listsize
                 if l:end >= len(l:all_docs)
                     l:next_batch = py3eval("'list_docs(listclient)'")
-                    l:all_docs = l:all_docs + l:next_batch
+                    " l:all_docs = l:all_docs + l:next_batch
                 endif
                 if l:end >= len(l:all_docs)
                     let l:end = len(l:all_docs)-1
