@@ -59,8 +59,8 @@ end_python3
 
 function! vocs#BuildList() abort
     let l:listsize = 16
-    py3("listclient = APIClient(credpath)")
-    let l:all_docs = py3eval("listclient = APIClient(credpath); list_docs(listclient)")
+    py3("listclient = APIClient(credpath); newlist= list_docs(listclient)")
+    let l:all_docs = py3eval("newlist")
     let l:prompt = "vocs -- Documents"
     let l:start = 0
     let l:end =  l:listsize-1
