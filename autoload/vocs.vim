@@ -64,7 +64,7 @@ function! vocs#BuildList() abort
     let l:prompt = "vocs -- Documents"
     let l:start = 0
     let l:end =  l:listsize-1
-
+    echo "yea"
     while 1
         redraw
         let l:options = [{"name": "Last page"}, {"name":"Next page"}] + l:all_docs[l:start:l:end]
