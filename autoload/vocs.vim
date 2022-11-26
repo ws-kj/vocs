@@ -77,10 +77,10 @@ function! vocs#BuildList() abort
             if l:start+l:listsize <= len(l:all_docs)-1
                 let l:start += l:listsize
                 let l:end += l:listsize
-                if l:end >= len(l:all_docs)
-                    l:next_batch = py3eval("'list_docs(listclient)'")
+                " if l:end >= len(l:all_docs)
+                "     l:next_batch = py3eval("'list_docs(listclient)'")
                     " l:all_docs = l:all_docs + l:next_batch
-                endif
+                " endif
                 if l:end >= len(l:all_docs)
                     let l:end = len(l:all_docs)-1
                 endif
