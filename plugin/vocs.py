@@ -14,6 +14,7 @@ SCOPES = [
 ]
 
 TOKEN = os.path.expanduser('~/.config/vocs/token.json')
+CREDPATH = os.path.expanduser("~/.config/vocs/credentials.json")
 
 client = None
 
@@ -35,12 +36,15 @@ class Document(object):
 
 class APIClient(object):
 
-    def __init__(self, credpath):
+    def __init__(self):
         self.docs_service = None
         self.drive_service = None
         self.creds = None
 
         self.current_doc = None
+
+        self.open_docs = {}
+
         self.page_token = None
 
         if os.path.exists(TOKEN):
@@ -50,7 +54,7 @@ class APIClient(object):
                 self.creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    credpath, SCOPES)
+                    CREDPATH, SCOPES)
                 self.creds = flow.run_local_server(port=0)
             with open(TOKEN, 'w') as token:
                 token.write(self.creds.to_json())    
@@ -62,18 +66,19 @@ class APIClient(object):
             print(err)
             sys.exit(1)
 
-    def load_doc(self, docid):
+    def load_doc(self, docid, buffer):
         try:
             doc_resp = self.docs_service.documents().get(documentId=docid).execute()
             body = self.build_raw(doc_resp)
             revision = doc_resp.get("revisionId")
             title = doc_resp.get("title")
             self.current_doc = Document(docid, revision, title, body)
+            self.open_docs.append({Document(docid, revision, title, body) : buffer})
 
         except HttpError as err:
             print(err)
 
-    def create_doc(self, title):
+    def create_doc(self, title, buffer):
         body = {'title': title}
         try:
             doc_resp = self.docs_service.documents().create(body=body).execute()
@@ -81,6 +86,7 @@ class APIClient(object):
             body = self.build_raw(doc_resp)
             revision = doc_resp.get("revisionId")
             self.current_doc = Document(docid, revision, title, body)
+            self.open_docs.append({Document(docid, revision, title, body) : buffer})
 
         except HttpError as err:
             print(err)
@@ -89,7 +95,9 @@ class APIClient(object):
         raw = ""
         for elem in doc_resp["body"]["content"]:
             if "paragraph" in elem:
-                raw += elem["paragraph"]["elements"][0].get("textRun")["content"]
+                tr = elem["paragraph"]["elements"][0].get("textRun")
+                if tr is not None:
+                    raw += tr["content"]
         return raw
 
     def get_files(self):
@@ -173,3 +181,4 @@ def list_docs(client):
         client = APIClient(getcwd() + '/../plugin/credentials.json')
 
     return client.get_files()
+

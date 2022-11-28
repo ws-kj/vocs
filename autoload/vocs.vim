@@ -10,12 +10,16 @@ buffer = None
 credpath = os.path.expanduser("~/.config/vocs/credentials.json")
 
 def open_doc(id):
-    client = APIClient(credpath)
+    client = APIClient()
     id = id[1:len(id)-1]
-    client.load_doc(id) 
+    if vim.current.buffer[:] != [''] and vim.current.buffer.name != "[No Name]":
+        vim.command("tabe")
+
+    client.load_doc(id, vim.current.buffer)
     if client.current_doc != None:
         if vim.current.buffer[:] != [''] and vim.current.buffer.name != "[No Name]":
             vim.command("tabe")
+
         vim.current.buffer[:] = client.current_doc.body.splitlines()
         buffer = vim.current.buffer
         vim.command("setlocal buftype=nofile")
@@ -26,8 +30,7 @@ def open_doc(id):
     return client, buffer 
 
 def create_doc(title):
-    client = APIClient(credpath)
-    client.create_doc(title)
+    client = APIClient()
     if client.current_doc != None:
         if vim.current.buffer[:] != [''] and vim.current.buffer.name != "[No Name]":
             vim.command("tabe")
@@ -38,18 +41,21 @@ def create_doc(title):
         vim.command("setlocal noswapfile")
         vim.command("file " + title + " (Google Docs)")
 
+    client.create_doc(title, buffer)
     return client, buffer
 
 def save_doc(client, buffer):
-    if vim.current.buffer != buffer:
-        return
-    if client != None and client.current_doc != None:
-       client.current_doc.update_body("\n".join(vim.current.buffer[:]))
-       client.push_update()
+    if client == None:
+        break
+    for doc, buf in client.open_docs.items():
+        if vim.current.buffer == buf:
+            doc.update_body("\n".join(vim.current.buffer[:]))
+            client.push_update()
+            break
 
 def list_docs(client):
     if client == None:
-        client = APIClient(credpath)
+        client = APIClient()
 
     return client.get_files()
 
@@ -57,7 +63,7 @@ end_python3
 
 function! vocs#BuildList() abort
     let l:listsize = 16
-    py3 listclient = APIClient(credpath)
+    py3 listclient = APIClient()
     let l:all_docs = py3eval("list_docs(listclient)")
     let l:prompt = "vocs -- Documents"
     let l:start = 0
