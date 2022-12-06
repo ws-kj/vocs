@@ -44,8 +44,12 @@ def save_doc(client, buffer):
     if vim.current.buffer != buffer:
         return
     if client != None and client.current_doc != None:
-       client.current_doc.update_body("\n".join(vim.current.buffer[:]))
-       client.push_update()
+        for doc in client.open_docs:
+            if len(vim.current.buffer.name) > len(doc.title) and doc.title == vim.current.buffer[0:len(doc.title)]:
+                vim.command("tabe")
+                doc.update_body("\n".join(vim.current.buffer[:]))
+                client.push_update(doc)
+                break
 
 def list_docs(client):
     if client == None:

@@ -41,6 +41,7 @@ class APIClient(object):
         self.creds = None
 
         self.current_doc = None
+        self.open_docs = []
         self.page_token = None
 
         if os.path.exists(TOKEN):
@@ -69,6 +70,7 @@ class APIClient(object):
             revision = doc_resp.get("revisionId")
             title = doc_resp.get("title")
             self.current_doc = Document(docid, revision, title, body)
+            self.open_docs.append(self.current_doc)
 
         except HttpError as err:
             print(err)
@@ -81,6 +83,7 @@ class APIClient(object):
             body = self.build_raw(doc_resp)
             revision = doc_resp.get("revisionId")
             self.current_doc = Document(docid, revision, title, body)
+            self.open_docs.append(self.current_doc)
 
         except HttpError as err:
             print(err)
@@ -113,11 +116,11 @@ class APIClient(object):
            
         return files
 
-    def push_update(self):
-        if self.current_doc == None or self.current_doc.body == None:
+    def push_update(doc):
+        if doc.body == None:
             return
         try:
-            doc_resp = self.docs_service.documents().get(documentId=self.current_doc.docid).execute()
+            doc_resp = self.docs_service.documents().get(documentId=doc.docid).execute()
             old_body = self.build_raw(doc_resp)
             if len(old_body) < 2:
                 req = {"requests": [ 
@@ -125,7 +128,7 @@ class APIClient(object):
                         "location": {
                             "index": 1
                         },
-                        "text": self.current_doc.body
+                        "text": doc.body
                     }}
                 ]}
             else:
@@ -133,20 +136,20 @@ class APIClient(object):
                     { "deleteContentRange": {
                         "range": {
                             "startIndex": 1,
-                            "endIndex": self.get_current_end()
+                            "endIndex": self.get_current_end(doc)
                         }
                     }},
                     { "insertText": {
                         "location": {
                             "index": 1
                         },
-                        "text": self.current_doc.body
+                        "text": doc.body
                     }}
                 ]}
             
             batch = self.docs_service.new_batch_http_request();
             response = self.docs_service.documents().batchUpdate(
-                documentId=self.current_doc.docid,
+                documentId=doc.docid,
                 body=req
             ).execute()
 
@@ -156,11 +159,11 @@ class APIClient(object):
         except HttpError as err:
             print(err)         
 
-    def get_current_end(self):                            
-        if self.current_doc == None or self.current_doc.body == None:
+    def get_current_end(doc):                            
+        if doc.body == None:
             return 2
         try:
-            doc_resp = self.docs_service.documents().get(documentId=self.current_doc.docid).execute()
+            doc_resp = self.docs_service.documents().get(documentId=doc.docid).execute()
             return doc_resp["body"]["content"][len(doc_resp["body"]["content"])-1]["endIndex"]-1
 
         except HttpError as err:
